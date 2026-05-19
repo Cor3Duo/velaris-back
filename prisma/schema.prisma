@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String?  @unique // Opcional
+  username  String
+  password  String?  // Opcional
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  servers   Server[]  @relation("ServerOwner")
+  members   Member[]
+  messages  Message[]
+}
+
+model Server {
+  id         String   @id @default(uuid())
+  name       String
+  imageUrl   String?
+  inviteCode String   @unique @default(uuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relações
+  ownerId    String
+  owner      User      @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members    Member[]
+  channels   Channel[]
+}
+
+// Representa a participação de um usuário em um servidor
+model Member {
+  id        String   @id @default(uuid())
+  role      String   @default("GUEST") // GUEST, ADMIN
+  createdAt DateTime @default(now())
+
+  // Relações
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serverId  String
+  server    Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serverId]) // Um usuário só pode ser membro de um servidor uma vez
+}
+
+model Channel {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   @default("TEXT") // TEXT, AUDIO, VIDEO
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  serverId  String
+  server    Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages  Message[]
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  channelId String
+  channel   Channel  @relation(fields: [channelId], references: [id])
+
+  replyToId String?
+  replyTo   Message?  @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies   Message[] @relation("MessageReplies")
+}
