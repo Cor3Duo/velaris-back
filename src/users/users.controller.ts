@@ -15,6 +15,12 @@ export class UsersController {
     return this.usersService.createGuest(username);
   }
 
+  // ROTA: GET /users/servers/:serverId/members
+  @Get('servers/:serverId/members')
+  getServerMembers(@Param('serverId') serverId: string) {
+    return this.usersService.getServerMembers(serverId);
+  }
+
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);

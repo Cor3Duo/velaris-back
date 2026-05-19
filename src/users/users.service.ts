@@ -37,6 +37,23 @@ export class UsersService {
     return { user, globalServer };
   }
 
+  // Busca todos os membros de um servidor
+  async getServerMembers(serverId: string) {
+    return this.prisma.member.findMany({
+      where: { serverId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            imageUrl: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
   // Criação de usuário padrão
   async create(createUserDto: CreateUserDto) {
     if (createUserDto.email) {

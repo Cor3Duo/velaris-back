@@ -11,6 +11,9 @@ export class ChatController {
       where: { channelId },
       include: {
         user: { select: { id: true, username: true, imageUrl: true } },
+        reactions: {
+          include: { user: { select: { id: true, username: true } } }
+        },
         replyTo: { // <-- ADICIONADO AQUI
           include: {
             user: { select: { id: true, username: true, imageUrl: true } },
