@@ -1,16 +1,14 @@
-// src/prisma/prisma.service.ts
-
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaClient } from '@prisma/client';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
-    const adapter = new PrismaBetterSqlite3({
-      // Mesmo caminho que colocamos no prisma.config.ts!
-      url: "file:./prisma/dev.db"
-    });
+    // Configuramos o Pool de conexão do Postgres apontando para o Supabase
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const adapter = new PrismaPg(pool);
 
     super({ adapter });
   }
@@ -48,7 +46,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
           }
         }
       });
-      console.log('🌍 Servidor "Comunidade Global" gerado com sucesso!');
+      console.log('🌍 Servidor "Comunidade Global" gerado com sucesso no Supabase!');
     }
   }
 }
