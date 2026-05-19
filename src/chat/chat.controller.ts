@@ -12,7 +12,15 @@ export class ChatController {
       include: {
         user: { select: { id: true, username: true, imageUrl: true } },
         replyTo: { // <-- ADICIONADO AQUI
-          include: { user: { select: { username: true } } }
+          include: {
+            user: { select: { id: true, username: true, imageUrl: true } },
+            replyTo: {
+              include: { user: { select: { username: true } } }
+            },
+            reactions: { // <-- ADICIONE ISSO
+              include: { user: { select: { id: true, username: true } } }
+            }
+          },
         }
       },
       orderBy: { createdAt: 'asc' }

@@ -66,6 +66,37 @@ export class ChatGateway {
     this.broadcast(payload);
   }
 
+  @SubscribeMessage('toggleReaction')
+  async handleToggleReaction(@MessageBody() data: { messageId: string; userId: string; emoji: string }, @ConnectedSocket() client: WebSocket) {
+    // Verifica se já existe a reação
+    const existingReaction = await this.prisma.reaction.findUnique({
+      where: {
+        messageId_userId_emoji: { messageId: data.messageId, userId: data.userId, emoji: data.emoji }
+      }
+    });
+
+    if (existingReaction) {
+      await this.prisma.reaction.delete({ where: { id: existingReaction.id } });
+    } else {
+      await this.prisma.reaction.create({
+        data: { messageId: data.messageId, userId: data.userId, emoji: data.emoji }
+      });
+    }
+
+    // Busca a mensagem atualizada com todas as reações
+    const updatedMessage = await this.prisma.message.findUnique({
+      where: { id: data.messageId },
+      include: {
+        user: { select: { id: true, username: true, imageUrl: true } },
+        replyTo: { include: { user: { select: { username: true } } } },
+        reactions: { include: { user: { select: { id: true, username: true } } } }
+      }
+    });
+
+    const payload = JSON.stringify({ event: 'reactionUpdated', data: updatedMessage });
+    this.broadcast(payload);
+  }
+
   // Função auxiliar para enviar a todos conectados
   private broadcast(payload: string) {
     this.server.clients.forEach((c) => {
